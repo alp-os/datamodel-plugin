@@ -1785,6 +1785,114 @@
               }
             }
           }
+        },
+        {
+          "name": "white_rabbit_plugin",
+          "type": "white_rabbit",
+          "entrypoint": "flows.white_rabbit_plugin.flow.white_rabbit_plugin",
+          "image": "d2e-white-rabbit-flow-local:latest",
+          "image_pull_policy": "Never",
+          "tags": [
+            "white_rabbit"
+          ],
+          "parameter_openapi_schema": {
+            "title": "Parameters",
+            "type": "object",
+            "properties": {
+              "options": {
+                "$ref": "#/definitions/WhiteRabbitRequestType",
+                "position": 0,
+                "title": "options"
+              }
+            },
+            "required": [
+              "options"
+            ],
+            "definitions": {
+              "WhiteRabbitRequestType": {
+                "properties": {
+                  "method": {
+                    "title": "Method",
+                    "type": "string"
+                  },
+                  "url": {
+                    "title": "Url",
+                    "type": "string"
+                  },
+                  "headers": {
+                    "title": "Headers",
+                    "type": "object"
+                  },
+                  "data": {
+                    "title": "Data",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "method",
+                  "url",
+                  "headers",
+                  "data"
+                ],
+                "title": "WhiteRabbitRequestType",
+                "type": "object"
+              }
+            }
+          }
+        },
+        {
+          "name": "perseus_plugin",
+          "type": "perseus",
+          "entrypoint": "flows.perseus_plugin.flow.perseus_plugin",
+          "image": "d2e-perseus-flow-local:latest",
+          "image_pull_policy": "Never",
+          "tags": [
+            "perseus"
+          ],
+          "parameter_openapi_schema": {
+            "title": "Parameters",
+            "type": "object",
+            "properties": {
+              "options": {
+                "$ref": "#/definitions/WhiteRabbitRequestType",
+                "position": 0,
+                "title": "options"
+              }
+            },
+            "required": [
+              "options"
+            ],
+            "definitions": {
+              "PerseusRequestType": {
+                "properties": {
+                  "method": {
+                    "title": "Method",
+                    "type": "string"
+                  },
+                  "url": {
+                    "title": "Url",
+                    "type": "string"
+                  },
+                  "headers": {
+                    "title": "Headers",
+                    "type": "object"
+                  },
+                  "data": {
+                    "title": "Data",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "method",
+                  "url",
+                  "headers",
+                  "data"
+                ],
+                "title": "PerseusRequestType",
+                "type": "object"
+              }
+            }
+          }
         }
       ]
     }
