@@ -1,19 +1,18 @@
 import requests
 import time
+import json
 from pydantic import ValidationError
 from prefect.variables import Variable
 from prefect.blocks.system import Secret
 from prefect.logging import get_run_logger
 from prefect_shell import ShellOperation
-from flows.perseus_plugin.types import ServiceCredentials
-import os
-import sys
-from subprocess import Popen, PIPE, STDOUT, CalledProcessError
+from flows.perseus_plugin.types import ServiceCredentials, PerseusRequestType
+from shared_utils.api.OpenIdAPI import OpenIdAPI
 
 class Perseus:
     def __init__(self):
         self.logger = get_run_logger()
-        self.white_rabbit_endpoint = "http://localhost:5004/backend/"
+        self.perseus_endpoint = "http://localhost:5004/backend/"
         try:
             service_credentials = ServiceCredentials(
                 PG__DB_NAME=Variable.get("pg_db_name"),
@@ -44,14 +43,32 @@ class Perseus:
 
         while not self.health_check():
             time.sleep(10)
-        self.logger.info("perseus service is ready to accept requests")
+        self.logger.info("Perseus service is ready to accept requests")
         self.process = process
 
     def health_check(self):
         try:
-            response = requests.get(f"{self.white_rabbit_endpoint}api/info")
+            response = requests.get(f"{self.perseus_endpoint}api/info")
 
             return response.status_code == 200
         except requests.RequestException as e:
-            self.logger.error(f"perseus service is not ready: {e}")
+            self.logger.error(f"Perseus service is not ready: {e}")
             return False
+        
+    def handle_request(self, options:PerseusRequestType):
+        options.headers.update(
+            {
+                "Authorization": f"Bearer {OpenIdAPI().getClientCredentialToken()}"
+            }
+        )
+
+        result = requests.post(
+            url=f"{self.perseus_endpoint}{options.url}",
+            headers=options.headers,
+            data=json.dumps(options.data))
+
+        if ((result.status_code >= 400) and (result.status_code < 600)):
+            raise Exception(
+                f"Perseus failed to complete request, {result.content}")
+        else:
+            return result.json()
