@@ -1790,7 +1790,7 @@
           "name": "white_rabbit_plugin",
           "type": "white_rabbit",
           "entrypoint": "flows.white_rabbit_plugin.flow.white_rabbit_plugin",
-          "image": "d2e-white-rabbit-flow-local:latest",
+          "image": "ghcr.io/data2evidence/d2e-flow/white_rabbit:develop",
           "image_pull_policy": "Never",
           "tags": [
             "white_rabbit"
@@ -1844,7 +1844,7 @@
           "name": "perseus_plugin",
           "type": "perseus",
           "entrypoint": "flows.perseus_plugin.flow.perseus_plugin",
-          "image": "d2e-perseus-flow-local:latest",
+          "image": "ghcr.io/data2evidence/d2e-flow/perseus:develop",
           "image_pull_policy": "Never",
           "tags": [
             "perseus"
