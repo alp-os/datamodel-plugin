@@ -1,5 +1,4 @@
 import requests
-from requests.exceptions import HTTPError
 import time
 import json
 from pydantic import ValidationError

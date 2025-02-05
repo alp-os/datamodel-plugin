@@ -10,12 +10,6 @@ def setup_plugin(white_rabbit: WhiteRabbit):
     return white_rabbit
 
 
-@task(log_prints=True)
-def stop(white_rabbit: WhiteRabbit):
-    white_rabbit.stop()
-    return
-
-
 @flow(log_prints=True)
 def white_rabbit_plugin(options: WhiteRabbitRequestType):
     logger = get_run_logger()
