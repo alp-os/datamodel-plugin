@@ -148,9 +148,6 @@
           "tags": [
             "cohort_survival"
           ],
-          "volumes": [
-            "r-libs:/home/docker/plugins/R/site-library"
-          ],
           "parameter_openapi_schema": {
             "title": "Parameters",
             "type": "object",
