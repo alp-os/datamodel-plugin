@@ -1811,10 +1811,6 @@
             "definitions": {
               "WhiteRabbitRequestType": {
                 "properties": {
-                  "method": {
-                    "title": "Method",
-                    "type": "string"
-                  },
                   "url": {
                     "title": "Url",
                     "type": "string"
@@ -1829,7 +1825,6 @@
                   }
                 },
                 "required": [
-                  "method",
                   "url",
                   "headers",
                   "data"
@@ -1865,10 +1860,6 @@
             "definitions": {
               "PerseusRequestType": {
                 "properties": {
-                  "method": {
-                    "title": "Method",
-                    "type": "string"
-                  },
                   "url": {
                     "title": "Url",
                     "type": "string"
@@ -1883,7 +1874,6 @@
                   }
                 },
                 "required": [
-                  "method",
                   "url",
                   "headers",
                   "data"
