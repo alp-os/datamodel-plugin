@@ -13,7 +13,7 @@ from shared_utils.api.OpenIdAPI import OpenIdAPI
 class WhiteRabbit:
     def __init__(self):
         self.logger = get_run_logger()
-        self.white_rabbit_endpoint = "http://localhost:8000/white-rabbit/api"
+        self.white_rabbit_endpoint = "http://localhost:8000/white-rabbit/api/"
         try:
             service_credentials = ServiceCredentials(
                 PG__DB_NAME=Variable.get("pg_db_name"),
@@ -41,18 +41,17 @@ class WhiteRabbit:
                 "Successfully run command to start white rabbit service")
 
         while not self.health_check():
-            time.sleep(3)
+            time.sleep(5)
         self.logger.info("white rabbit service is ready to accept requests")
         self.process = process
 
     def health_check(self):
         try:
-            response = requests.get(
-                "http://localhost:8000/white-rabbit/api/info")
+            response = requests.get(f"{self.white_rabbit_endpoint}info")
 
             return response.status_code == 200
         except requests.RequestException as e:
-            self.logger.error(f"service is not ready: {e}")
+            self.logger.error(f"WhiteRabbit service is not ready: {e}")
             return False
 
     def handle_request(self, options: WhiteRabbitRequestType):

@@ -12,7 +12,7 @@ from shared_utils.api.OpenIdAPI import OpenIdAPI
 class Perseus:
     def __init__(self):
         self.logger = get_run_logger()
-        self.perseus_endpoint = "http://localhost:5004/backend/"
+        self.perseus_endpoint = "http://localhost:5004/backend/api/"
         try:
             service_credentials = ServiceCredentials(
                 PG__DB_NAME=Variable.get("pg_db_name"),
@@ -42,13 +42,13 @@ class Perseus:
                 "Successfully run command to start perseus service")
 
         while not self.health_check():
-            time.sleep(10)
+            time.sleep(5)
         self.logger.info("Perseus service is ready to accept requests")
         self.process = process
 
     def health_check(self):
         try:
-            response = requests.get(f"{self.perseus_endpoint}api/info")
+            response = requests.get(f"{self.perseus_endpoint}info")
 
             return response.status_code == 200
         except requests.RequestException as e:
