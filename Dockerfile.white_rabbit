@@ -1,4 +1,4 @@
-FROM white-rabbit-local:latest AS base
+FROM ghcr.io/data2evidence/whiterabbit:master AS base
 
 COPY ./requirements_perseus.txt .
 
