@@ -72,12 +72,3 @@ jobs:
            else 
               npm publish --dry-run
            fi
-      - name: Delete Untagged Images 
-        uses: actions/delete-package-versions@v5
-        if: github.ref_name == 'develop'
-        continue-on-error: true
-        with: 
-          package-name: 'd2e-flows'
-          package-type: "npm"
-          min-versions-to-keep: 3
-          delete-only-pre-release-versions: "true"
