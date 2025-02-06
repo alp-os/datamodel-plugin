@@ -3,7 +3,6 @@ from rpy2 import robjects
 
 from prefect import flow, task
 from prefect.variables import Variable
-from prefect_shell import ShellOperation
 from prefect.logging import get_run_logger
 from prefect.serializers import JSONSerializer
 from prefect.filesystems import RemoteFileSystem as RFS
@@ -12,32 +11,9 @@ from flows.cohort_survival_plugin.types import CohortSurvivalOptionsType
 
 from shared_utils.dao.DBDao import DBDao
 
-@task
-def setup_plugin():
-    r_libs_user_directory = Variable.get("r_libs_user")
-    if r_libs_user_directory:
-        ShellOperation(
-            commands=[
-                f"Rscript -e \"remotes::install_version('snakecase', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('broom', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('visOmopResults', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('dbplyr', version='2.4.0', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('rjson', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('omopgenerics', version='0.2.1', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('CDMConnector', version='1.4.0', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('PatientProfiles', version='1.1.1', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('CohortSurvival', version='0.5.1', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-                f"Rscript -e \"remotes::install_version('RPostgres', version='1.4.5', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org', lib='{r_libs_user_directory}')\"",
-            ]
-        ).run()
-    else:
-        raise ValueError("Prefect variable: 'r_libs_user' is empty.")
-
 
 @flow(log_prints=True, persist_result=True)
 def cohort_survival_plugin(options: CohortSurvivalOptionsType):
-    setup_plugin()
-    
     logger = get_run_logger()
     logger.info("Running Cohort Survival")
     
@@ -56,7 +32,8 @@ def cohort_survival_plugin(options: CohortSurvivalOptionsType):
         target_cohort_definition_id,
         outcome_cohort_definition_id
     )
-    
+
+
 @task(
     result_storage=RFS.load(Variable.get("flows_results_sb_name")),
     result_storage_key="{flow_run.id}_km.json",
@@ -68,17 +45,12 @@ def generate_cohort_survival_data(
     target_cohort_definition_id: int,
     outcome_cohort_definition_id: int,
 ):
-    filename = f"{dbdao.database_code}_{dbdao.schema_name}"
-    r_libs_user_directory = Variable.get("r_libs_user")
-
     # Get credentials for database code
     db_credentials = dbdao.tenant_configs
 
     with robjects.conversion.localconverter(robjects.default_converter):
         result = robjects.r(
             f"""
-            # Function to generate a random string of specified length
-            .libPaths(c('{r_libs_user_directory}',.libPaths()))
             library(CDMConnector)
             library(CohortSurvival)
             library(dplyr)
@@ -86,8 +58,6 @@ def generate_cohort_survival_data(
             library(rjson)
             library(tools)
             library(RPostgres)
-            # Run R console inside the dataflow agent container to run these code
-
 
             # VARIABLES
             target_cohort_definition_id <- {target_cohort_definition_id}
@@ -111,22 +81,6 @@ def generate_cohort_survival_data(
 
                     # Begin transaction to run below 2 queries as is required for cohort survival but are not needed to be commited to database
                     DBI::dbBegin(pg_con)
-                    # Remove these when cohorts functionality are improved
-                    query <- sprintf("
-                        UPDATE cohort
-                        SET cohort_start_date = death_date, cohort_end_date = death.death_date
-                        FROM death
-                        WHERE subject_id = death.person_id
-                        AND death_date IS NOT NULL
-                        AND COHORT_DEFINITION_ID=%d", outcome_cohort_definition_id)
-                    DBI::dbExecute(pg_con, query)
-
-                    query <- sprintf("
-                        UPDATE cohort
-                        SET cohort_end_date = cohort_start_date
-                        WHERE COHORT_DEFINITION_ID=%d", target_cohort_definition_id)
-                        
-                    DBI::dbExecute(pg_con, query)
 
                     # cdm_from_con is from CDMConnection
                     cdm <- CDMConnector::cdm_from_con(
