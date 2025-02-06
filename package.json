@@ -73,6 +73,18 @@
                   "token": {
                     "title": "Token",
                     "type": "string"
+                  },
+                  "cohortDefinitionId": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Cohortdefinitionid"
                   }
                 },
                 "required": [
