@@ -11,7 +11,6 @@ ENV PATH="/usr/src/app/bin:$PATH"
 RUN pip install -r requirements.txt -r requirements_perseus.txt
 RUN pip freeze
 
-RUN mkdir flows
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
 COPY --chown=docker:docker --chmod=711 ./flows/data_mapping/perseus_plugin flows/perseus_plugin
 
