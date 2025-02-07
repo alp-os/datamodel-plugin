@@ -65,11 +65,11 @@ jobs:
           scope: '@data2evidence'
       - name: Update2 version
         run: |
-          echo matrix.PKGPATH
+          echo ${{ matrix.PKGPATH }}
       - name: Update version
         run: |
-          echo matrix.PKGPATH
-          cd matrix.PKGPATH
+          echo ${{ matrix.PKGPATH }}
+          cd ${{ matrix.PKGPATH }}
           if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
             RELEASE_VERSION=${{ github.event.inputs.tag }}
             jq --arg v $RELEASE_VERSION '.version=$v' package.json > tmppkg; mv tmppkg package.json
@@ -82,7 +82,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
            pwd
-           cd matrix.PKGPATH
+           cd ${{ matrix.PKGPATH }}
            if [[ $SHOULD_PUBLISH == true ]]; then 
               npm publish
            else 
