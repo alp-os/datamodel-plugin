@@ -86,7 +86,7 @@ RUN useradd docker -u 1001 \
     && adduser docker alp
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
-COPY --chown=docker:docker --chmod=711 ./flows/cohort_survival_plugin flows/cohort_survival_plugin
+COPY --chown=docker:docker --chmod=711 ./flows/cohort_survival/cohort_survival_plugin flows/cohort_survival_plugin
 
 USER docker
 
