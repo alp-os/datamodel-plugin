@@ -12,6 +12,6 @@ RUN pip install -r requirements.txt -r requirements_perseus.txt
 RUN pip freeze
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
-COPY --chown=docker:docker --chmod=711 ./flows/perseus_plugin flows/perseus_plugin
+COPY --chown=docker:docker --chmod=711 ./flows/data_mapping/perseus_plugin flows/perseus_plugin
 
 ENTRYPOINT []

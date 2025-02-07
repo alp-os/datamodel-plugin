@@ -51,7 +51,7 @@ RUN python3 -m venv /usr/src/app
 ENV PATH="/usr/src/app/bin:$PATH"
 
 COPY dataflow-gen-base/requirements.txt /app/requirements.txt
-COPY ./flows/cohort_survival_plugin/requirements.txt /app/requirements_Cohort_Survival.txt
+COPY ./flows/cohort_survival/cohort_survival_plugin/requirements.txt /app/requirements_Cohort_Survival.txt
 RUN pip3 install -r /app/requirements.txt -r /app/requirements_Cohort_Survival.txt
 
 ### END INSTALL PYTHON DEPENDENCIES ###
@@ -86,7 +86,7 @@ RUN useradd docker -u 1001 \
     && adduser docker alp
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
-COPY --chown=docker:docker --chmod=711 ./flows/cohort_survival_plugin flows/cohort_survival_plugin
+COPY --chown=docker:docker --chmod=711 ./flows/cohort_survival/cohort_survival_plugin flows/cohort_survival_plugin
 
 USER docker
 

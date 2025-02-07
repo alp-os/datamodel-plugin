@@ -18,6 +18,7 @@
   "homepage": "https://github.com/data2evidence/d2e-flows#readme",
   "trex": {
     "flow": {
+      "image": "ghcr.io/data2evidence/d2e-flow/base",
       "flows": [
         {
           "name": "cohort_generator_plugin",
@@ -146,65 +147,6 @@
                   "expression"
                 ],
                 "title": "CohortJsonType",
-                "type": "object"
-              }
-            }
-          }
-        },
-        {
-          "name": "cohort_survival_plugin",
-          "type": "cohort_survival",
-          "entrypoint": "flows.cohort_survival_plugin.flow.cohort_survival_plugin",
-          "image": "ghcr.io/data2evidence/d2e-flow/cohort-survival:develop",
-          "image_pull_policy": "IfNotPresent",
-          "tags": [
-            "cohort_survival"
-          ],
-          "parameter_openapi_schema": {
-            "title": "Parameters",
-            "type": "object",
-            "properties": {
-              "options": {
-                "$ref": "#/definitions/CohortSurvivalOptionsType",
-                "position": 0,
-                "title": "options"
-              }
-            },
-            "required": [
-              "options"
-            ],
-            "definitions": {
-              "CohortSurvivalOptionsType": {
-                "properties": {
-                  "databaseCode": {
-                    "title": "Databasecode",
-                    "type": "string"
-                  },
-                  "schemaName": {
-                    "title": "Schemaname",
-                    "type": "string"
-                  },
-                  "targetCohortDefinitionId": {
-                    "title": "Targetcohortdefinitionid",
-                    "type": "integer"
-                  },
-                  "outcomeCohortDefinitionId": {
-                    "title": "Outcomecohortdefinitionid",
-                    "type": "integer"
-                  },
-                  "datasetId": {
-                    "title": "Datasetid",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "databaseCode",
-                  "schemaName",
-                  "targetCohortDefinitionId",
-                  "outcomeCohortDefinitionId",
-                  "datasetId"
-                ],
-                "title": "CohortSurvivalOptionsType",
                 "type": "object"
               }
             }
@@ -1521,62 +1463,6 @@
           }
         },
         {
-          "name": "ner_extract_plugin",
-          "type": "NLP",
-          "entrypoint": "flows.ner_extract_plugin.flow.ner_extract_plugin",
-          "image": "ghcr.io/data2evidence/d2e-flow/nlp:develop",
-          "image_pull_policy": "IfNotPresent",
-          "tags": [],
-          "parameter_openapi_schema": {
-            "title": "Parameters",
-            "type": "object",
-            "properties": {
-              "options": {
-                "title": "options",
-                "position": 0,
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/NerExtractOptions"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "options"
-            ],
-            "definitions": {
-              "NerExtractOptions": {
-                "title": "NerExtractOptions",
-                "type": "object",
-                "properties": {
-                  "database_code": {
-                    "title": "Database Code",
-                    "type": "string"
-                  },
-                  "schema_name": {
-                    "title": "Schema Name",
-                    "type": "string"
-                  },
-                  "note_table": {
-                    "title": "Note Table",
-                    "default": "note",
-                    "type": "string"
-                  },
-                  "note_nlp_table": {
-                    "title": "Note NLP Table",
-                    "default": "note_nlp",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "database_code",
-                  "schema_name"
-                ]
-              }
-            }
-          }
-        },
-        {
           "name": "fhir_to_omop_plugin",
           "type": "fhir_to_omop",
           "entrypoint": "flows.fhir_to_omop_plugin.flow.fhir_to_omop_plugin",
@@ -1790,104 +1676,6 @@
                   "retraincoeff_table_name"
                 ],
                 "title": "RetrainConfig",
-                "type": "object"
-              }
-            }
-          }
-        },
-        {
-          "name": "white_rabbit_plugin",
-          "type": "white_rabbit",
-          "entrypoint": "flows.white_rabbit_plugin.flow.white_rabbit_plugin",
-          "image": "ghcr.io/data2evidence/d2e-flow/white_rabbit:develop",
-          "image_pull_policy": "Never",
-          "tags": [
-            "white_rabbit"
-          ],
-          "parameter_openapi_schema": {
-            "title": "Parameters",
-            "type": "object",
-            "properties": {
-              "options": {
-                "$ref": "#/definitions/WhiteRabbitRequestType",
-                "position": 0,
-                "title": "options"
-              }
-            },
-            "required": [
-              "options"
-            ],
-            "definitions": {
-              "WhiteRabbitRequestType": {
-                "properties": {
-                  "url": {
-                    "title": "Url",
-                    "type": "string"
-                  },
-                  "headers": {
-                    "title": "Headers",
-                    "type": "object"
-                  },
-                  "data": {
-                    "title": "Data",
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "url",
-                  "headers",
-                  "data"
-                ],
-                "title": "WhiteRabbitRequestType",
-                "type": "object"
-              }
-            }
-          }
-        },
-        {
-          "name": "perseus_plugin",
-          "type": "perseus",
-          "entrypoint": "flows.perseus_plugin.flow.perseus_plugin",
-          "image": "ghcr.io/data2evidence/d2e-flow/perseus:develop",
-          "image_pull_policy": "Never",
-          "tags": [
-            "perseus"
-          ],
-          "parameter_openapi_schema": {
-            "title": "Parameters",
-            "type": "object",
-            "properties": {
-              "options": {
-                "$ref": "#/definitions/PerseusRequestType",
-                "position": 0,
-                "title": "options"
-              }
-            },
-            "required": [
-              "options"
-            ],
-            "definitions": {
-              "PerseusRequestType": {
-                "properties": {
-                  "url": {
-                    "title": "Url",
-                    "type": "string"
-                  },
-                  "headers": {
-                    "title": "Headers",
-                    "type": "object"
-                  },
-                  "data": {
-                    "title": "Data",
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "url",
-                  "headers",
-                  "data"
-                ],
-                "title": "PerseusRequestType",
                 "type": "object"
               }
             }

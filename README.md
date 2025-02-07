@@ -12,3 +12,4 @@ In the flow to be modified in trex > flow > flows
 3. Export PAT as env `export GITHUB_PAT=<GITHUB_PAT>`
 4. Run `yarn build` to build `d2e-flows-local:latest` after making changes to flow code
 5. In d2e-plugins repo, set PLUGINS_SEED_UDPATE=True and then run `yarn start:minerva trex` to reinitialize the plugins
+ 

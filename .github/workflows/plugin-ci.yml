@@ -43,6 +43,17 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - PKGPATH: ./flows/base/
+          - PKGPATH: ./flows/nlp/
+          - PKGPATH: ./flows/cohort_survival/
+          - PKGPATH: ./flows/data_mapping/
+          - PKGPATH: ./flows/white_rabbit/
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,6 +67,7 @@ jobs:
           scope: '@data2evidence'
       - name: Update version
         run: |
+          cd ${{ matrix.PKGPATH }}
           if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
             RELEASE_VERSION=${{ github.event.inputs.tag }}
             jq --arg v $RELEASE_VERSION '.version=$v' package.json > tmppkg; mv tmppkg package.json
@@ -67,6 +79,7 @@ jobs:
           SHOULD_PUBLISH: ${{ github.ref_name == 'develop' || github.event_name == 'workflow_dispatch' }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+           cd ${{ matrix.PKGPATH }}
            if [[ $SHOULD_PUBLISH == true ]]; then 
               npm publish
            else 

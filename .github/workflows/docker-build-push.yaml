@@ -53,19 +53,19 @@ jobs:
         include:
           - AZ_REG_REPOSITORY: d2e-flow/base
             DOCKER_BUILD_CONTEXT_PATH: .
-            DOCKER_BUILD_FILE_PATH: Dockerfile
+            DOCKER_BUILD_FILE_PATH: flows/base/Dockerfile
           - AZ_REG_REPOSITORY: d2e-flow/nlp
             DOCKER_BUILD_CONTEXT_PATH: .
-            DOCKER_BUILD_FILE_PATH: Dockerfile_NLP
+            DOCKER_BUILD_FILE_PATH: flows/nlp/Dockerfile
           - AZ_REG_REPOSITORY: d2e-flow/cohort-survival
             DOCKER_BUILD_CONTEXT_PATH: .
-            DOCKER_BUILD_FILE_PATH: flows/cohort_survival_plugin/Dockerfile
+            DOCKER_BUILD_FILE_PATH: flows/cohort_survival/Dockerfile
           - AZ_REG_REPOSITORY: d2e-flow/perseus
             DOCKER_BUILD_CONTEXT_PATH: .
-            DOCKER_BUILD_FILE_PATH: Dockerfile.perseus
+            DOCKER_BUILD_FILE_PATH: flows/data_mapping/Dockerfile
           - AZ_REG_REPOSITORY: d2e-flow/white_rabbit
             DOCKER_BUILD_CONTEXT_PATH: .
-            DOCKER_BUILD_FILE_PATH: Dockerfile.white_rabbit
+            DOCKER_BUILD_FILE_PATH: flows/white_rabbit/Dockerfile
 
     steps:
       - name: Free Disk Space (Ubuntu)

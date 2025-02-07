@@ -20,6 +20,6 @@ ENV PATH="/usr/src/app/bin:$PATH"
 RUN pip3 install -r requirements_perseus.txt
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
-COPY --chown=docker:docker --chmod=711 ./flows/white_rabbit_plugin flows/white_rabbit_plugin
+COPY --chown=docker:docker --chmod=711 ./flows/white_rabbit/white_rabbit_plugin flows/white_rabbit_plugin
 
 ENTRYPOINT []
