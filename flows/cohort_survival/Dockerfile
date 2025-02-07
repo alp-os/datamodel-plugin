@@ -51,7 +51,7 @@ RUN python3 -m venv /usr/src/app
 ENV PATH="/usr/src/app/bin:$PATH"
 
 COPY dataflow-gen-base/requirements.txt /app/requirements.txt
-COPY ./flows/cohort_survival_plugin/requirements.txt /app/requirements_Cohort_Survival.txt
+COPY ./flows/cohort_survival/cohort_survival_plugin/requirements.txt /app/requirements_Cohort_Survival.txt
 RUN pip3 install -r /app/requirements.txt -r /app/requirements_Cohort_Survival.txt
 
 ### END INSTALL PYTHON DEPENDENCIES ###
