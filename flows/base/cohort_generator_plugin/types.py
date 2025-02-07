@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class CohortJsonType(BaseModel):
@@ -19,6 +20,9 @@ class CohortGeneratorOptionsType(BaseModel):
     cohortJson: CohortJsonType
     datasetId: str
     description: str
+
+    # Optional, if provided, will not create cohort definition
+    cohortDefinitionId: Optional[int] = None
 
     @property
     def use_cache_db(self) -> str:

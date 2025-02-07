@@ -38,8 +38,8 @@ COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
 COPY --chown=docker:docker --chmod=711 ./requirements_NLP.txt .
 RUN pip install -r requirements_NLP.txt
 
-RUN mkdir -p ./flows
-RUN chown -R docker:docker ./flows
-COPY --chown=docker:docker --chmod=711 ./flows/ner_extract_plugin flows/ner_extract_plugin
+RUN mkdir -p ./flows/nlp
+RUN chown -R docker:docker ./flows/nlp
+COPY --chown=docker:docker --chmod=711 ./flows/nlp/ner_extract_plugin flows/ner_extract_plugin
 
 USER docker
