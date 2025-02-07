@@ -35,7 +35,6 @@ on:
   push:
     branches:
       - develop
-      - p-hoffmann/reorg
 
 env:
   GIT_BRANCH_NAME: ${{ github.event.inputs.GIT_BRANCH_NAME || github.head_ref || github.ref_name }} # workflow_dispatch || pull_request || push
@@ -75,7 +74,7 @@ jobs:
           fi
       - name: Publish
         env:
-          SHOULD_PUBLISH: ${{ github.ref_name == 'develop' || github.ref_name == 'p-hoffmann/reorg' || github.event_name == 'workflow_dispatch' }}
+          SHOULD_PUBLISH: ${{ github.ref_name == 'develop' || github.event_name == 'workflow_dispatch' }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
            cd ${{ matrix.PKGPATH }}
