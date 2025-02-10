@@ -11,9 +11,9 @@ from jsonpath_ng import jsonpath, parse
 
 from prefect import task, flow
 
-from flows.dataflow_ui_plugin.hooks import *
-from flows.dataflow_ui_plugin.flowutils import *
-from flows.dataflow_ui_plugin.types import JoinType
+from flows.base.dataflow_ui_plugin.hooks import *
+from flows.base.dataflow_ui_plugin.flowutils import *
+from flows.base.dataflow_ui_plugin.types import JoinType
 
 from shared_utils.types import UserType
 from shared_utils.dao.DBDao import DBDao
@@ -24,7 +24,6 @@ class Node:
         self.id = node["id"]
         self.name = name
         self.type = node["type"]
-        self.use_cache_db = False
 
 
 class Flow(Node):
@@ -73,9 +72,6 @@ class Py2TableNode(Node):
         expression = parse(json_path)
 
         matched: list = expression.find(json_to_parse)
-
-        for match in matched:
-            print(match.value)
 
         # Assume only one match so return index 0
         return matched[0].value
@@ -273,15 +269,14 @@ class DbWriter(Node):
         self.schema_name = _node["dbtablename"].split(".")[0] # Todo: Add on UI side
         self.table_name = _node["dbtablename"].split(".")[1]
         self.database = _node["database"] 
-        # self.dataframe = _node["dataframe"] # Todo: Add/Remove on UI side
+        # self.dataframe = _node["dataframe"] # Todo: Add on UI side
         self.use_cache_db = False
 
     def test(self, _input: dict[str, Result], task_run_context):
         return False
 
-    def task(self, _input: dict[str, Result], task_run_context):
-        input_element = _input
-        
+    # Todo: Connect to db without specifying schema
+    def task(self, _input: dict[str, Result], task_run_context):        
         dbutils = DBDao(use_cache_db=self.use_cache_db, 
                         database_code=self.database,
                         schema_name=self.schema_name)
@@ -289,35 +284,34 @@ class DbWriter(Node):
         dbconn = dbutils.engine
 
         try:
-            # Todo: check if this node only accepts one node input
-            for key, value in _input.items(): # This accepts only one node 
+            for key, value in _input.items(): 
                 result_obj_df = value.result
                 result_obj_df.to_sql(
                     self.table_name, con=dbconn, index=False, if_exists="append", schema=self.schema_name
                 )
             return Result(False,  result_obj_df, self, task_run_context)
             
-            # Old way
+            # Todo: Update with dataframe once it's incorporated in backend
             # for path in self.dataframe:
             #     input_element = input_element[path].data
             # result = input_element.to_sql(
             #     self.tablename, dbconn, if_exists='replace')
             # return Result(False,  result, self, task_run_context)
         except Exception as e:
-            print(f"An error occurred: {e}")
             return Result(True, tb.format_exc(), self, task_run_context)
 
 class DBReader(Node):
     def __init__(self, name, _node):
         super().__init__(name, _node)
         self.sqlquery = _node["sqlquery"]
-        self.schemaname = _node["schemaname"] # Todo: Add on UI side
+        self.schemaname = "cdmdefault" # Use as the default schema for all dialects
         self.database = _node["database"]
         self.testdata = _node["testdata"]
 
     def test(self, task_run_context):
         return Result(False,  pd.read_json(json.dumps(self.testdata), orient="split"), self, task_run_context)
 
+    # Todo: Connect to db without specifying schema
     def task(self, task_run_context) -> Result:
         dbutils = DBDao(use_cache_db=False, 
                         database_code=self.database,
@@ -359,7 +353,7 @@ class SqlQueryNode(Node):
         if "params" in _node:
             self.params = _node["params"]
         self.database = _node["database"]
-        self.schema = "cdmdefault" #_node["schema"] # TODO: add on ui side
+        self.schema = "cdmdefault" # Use as the default schema for all dialects
         self.use_cache_db = False
 
 
@@ -373,6 +367,7 @@ class SqlQueryNode(Node):
     def _exec(self, _input: dict[str, Result], sqlquery: str) -> pd.DataFrame | None:
         con = None
         try:
+            # Todo: Connect to db without specifying schema
             tenant_configs = DBDao(use_cache_db=self.use_cache_db, 
                                    database_code=self.database, 
                                    schema_name=self.schema).tenant_configs
@@ -406,7 +401,7 @@ class SqlQueryNode(Node):
             return Result(True, tb.format_exc(), self, task_run_context)
 
 
-# To do: link up with JSON from UI
+# Todo: link up with JSON from UI
 class DataMappingNode(Node):
     """
     Map fields from multiple source dataframes to target tables.

@@ -612,7 +612,7 @@
         {
           "name": "dataflow_ui_plugin",
           "type": "dataflow_ui",
-          "entrypoint": "flows.dataflow_ui_plugin.flow.dataflow_ui_plugin",
+          "entrypoint": "flows.base.dataflow_ui_plugin.flow.dataflow_ui_plugin",
           "image": "ghcr.io/data2evidence/d2e-flow/base:develop",
           "image_pull_policy": "IfNotPresent",
           "tags": [],
