@@ -569,9 +569,11 @@ def upload_file_to_server(mapped_concepts_df: pd.DataFrame, image_occurrence_df:
     )
 
     logger.info("Connecting to DICOM server..")
+    # Todo: Uncomment when there is a dicom server
     #orthanc_a = OrthancApiClient(dicom_server_url, user='', pwd='')
     
     logger.info(f"Uploading {len(file_df)} files to DICOM server..")
+    # Todo: Uncomment when there is a dicom server
     # for index, row in file_df.iterrows():
     #     orthanc_instance_id = orthanc_a.upload_file(row["filepath"])
     #     if orthanc_instance_id:
