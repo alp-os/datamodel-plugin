@@ -10,7 +10,7 @@ from flows.mimic_omop_conversion_plugin.utils import *
 def initialize_id_sequence(conn):
     conn.execute('CREATE SEQUENCE IF NOT EXISTS main.id_sequence;')
 
-def creat_table(conn, sql_file, schema_name=None):
+def create_table(conn, sql_file, schema_name=None):
     with open(sql_file, 'r') as file:
         sql_qry = file.read()
         if "@schema_name" in sql_qry:
@@ -28,7 +28,7 @@ def make_table_name(file_path):
 def load_mimic_data(conn, mimic_dir):
     logger = get_run_logger()
     initialize_id_sequence(conn)
-    creat_table(conn, MIMICCreateSql)
+    create_table(conn, MIMICCreateSql)
     csv_files = glob.glob(os.path.join(mimic_dir, "**/*.csv*"), recursive=True)
     for file_path in csv_files:
         table_name, dir_name = make_table_name(file_path)
@@ -46,7 +46,7 @@ def load_mimic_data(conn, mimic_dir):
 def load_vocab(conn, vocab_dir):
     logger = get_run_logger()
     create_schema(conn, 'mimic_staging')
-    creat_table(conn, CreatVocabTable)
+    create_table(conn, CreatVocabTable)
     # insert vocab tables
     csv_files = glob.glob(os.path.join(vocab_dir, "**/*.csv*"), recursive=True)
     for file in csv_files:

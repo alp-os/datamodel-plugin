@@ -54,7 +54,7 @@ def export_data(conn, to_dbdao, chunk_size):
             # Attach Posgres Database
             conn.execute(attach_qry)
             # Creat schema and tables in postgres database
-            creat_table(conn, PostgresDDL, schema_name=schema_name)
+            create_table(conn, PostgresDDL, schema_name=schema_name)
             tables = conn.execute(f"SELECT table_name FROM duckdb_tables() WHERE (database_name = 'pg')").fetchall()
             tables = [x[0] for x in tables]
             for table in tables:
