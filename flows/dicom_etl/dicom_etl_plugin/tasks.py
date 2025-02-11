@@ -12,8 +12,8 @@ from prefect.context import TaskRunContext
 from prefect.serializers import JSONSerializer
 from prefect.filesystems import RemoteFileSystem as RFS
 
-from flows.dicom_etl_plugin.utils import *
-from flows.dicom_etl_plugin.types import *
+from .utils import *
+from .types import *
 
 if TYPE_CHECKING:
     import pandas as pd

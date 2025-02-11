@@ -3,8 +3,8 @@ from pathlib import Path
 from prefect import flow
 from prefect.logging import get_run_logger
 
-from flows.dicom_etl_plugin.types import *
-from flows.dicom_etl_plugin.tasks import *
+from .types import *
+from .tasks import *
 
 from shared_utils.dao.DBDao import DBDao
 from shared_utils.api.DicomServerAPI import DicomServerAPI

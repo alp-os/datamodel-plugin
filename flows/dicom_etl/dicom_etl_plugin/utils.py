@@ -6,7 +6,7 @@ from io import StringIO
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from flows.dicom_etl_plugin.types import *
+from .types import *
 
 if TYPE_CHECKING:
     from typing import Generator
