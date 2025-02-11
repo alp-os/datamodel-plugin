@@ -66,7 +66,7 @@ def load_vocab(conn, vocab_dir):
             raise Exception()
     # generate_custom_vocab
     try: 
-        raw_sql_files(conn, CustomVocabDir,CustomVocabSqls)
+        execute_raw_sql_from_file(conn, CustomVocabDir,CustomVocabSqls)
     except Exception as e:
         logger.error(f"Error generating custom vocabulories: {str(e)}")
         raise Exception()

@@ -1,6 +1,6 @@
 import os
 
-def raw_sql_files(conn, dir_root, sql_files):
+def execute_raw_sql_from_file(conn, dir_root, sql_files):
     for sql_file in sql_files:
         with open(os.path.join(dir_root, sql_file), 'r') as file:
             query = file.read()
