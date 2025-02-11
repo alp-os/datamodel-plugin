@@ -30,10 +30,6 @@ class DataElementType(BaseModel):
 class FlowActionType(str, Enum):
     INGEST_METADATA = "ingest_metadata"
     LOAD_VOCAB = "load_vocab"
-    
-class MissingPersonIDOptions(str, Enum):
-    SKIP = "skip" # skip data ingestion
-    USE_ID_ZERO = "use_id_zero" # use person_id = 0
 
 class PersonPatientMapping(BaseModel):
     schema_name: str

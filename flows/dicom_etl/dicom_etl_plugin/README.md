@@ -20,7 +20,6 @@
     "flowActionType": "load_vocab",
     "vocabSchemaName": "cdmvocab",
     "dicomFilesAbsPath": "",
-    "missingPersonIdOptions": "",
     "personToPatientMapping": {
       "tableName": "",
       "schemaName": "",
