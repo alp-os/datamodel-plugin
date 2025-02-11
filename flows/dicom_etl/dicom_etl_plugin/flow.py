@@ -71,7 +71,7 @@ def dicom_etl_plugin(options: DICOMETLOptions):
             # Extract all data elements into a single df
             extracted_data_df = extract_data_elements(dcm_files)
 
-            # Filter as DICOM2OMOP
+            # Map tags to concept_ids
             mapped_concepts_df = get_concept_ids_for_tags(extracted_data_df, vocab_dbdao)
             
             # Assume person record already exists in person table
@@ -92,22 +92,12 @@ def dicom_etl_plugin(options: DICOMETLOptions):
             image_feature_df = transform_for_image_feature(mapped_concepts_df, image_occurrence_df, 
                                                            new_image_feature_id, new_measurement_id, vocab_dbdao)
 
-            # Insert into procedure occurrence table
+            # Insert into tables
             ingest_procedure_occurrence(image_occurrence_df, cdm_dbdao)
-
-            # Insert into visit occurrence table
             ingest_visit_occurrence(image_occurrence_df, cdm_dbdao)
-
-            # Insert into image occurrence table
             ingest_image_occurrence(image_occurrence_df, mi_dbdao)
-
-            # Insert into measurement table
             ingest_measurement(image_feature_df, cdm_dbdao)
-
-            # Insert into image feature table
             ingest_image_feature(image_feature_df, mi_dbdao)
-    
-            # Insert into EAV table
             ingest_eav_table(mapped_concepts_df, image_occurrence_df, image_feature_df, mi_dbdao)
 
             # Todo: Uncomment when there is a dicom server
