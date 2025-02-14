@@ -3,9 +3,9 @@ from prefect.logging import get_run_logger
 from sqlalchemy import text
 
 import numpy as np
-from flows.mimic_omop_conversion_plugin.const import *
-from flows.mimic_omop_conversion_plugin.utils import *
-from flows.mimic_omop_conversion_plugin.load_data import *
+from .const import *
+from .utils import *
+from .load_data import *
 from shared_utils.types import SupportedDatabaseDialects
 
 

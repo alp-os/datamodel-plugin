@@ -3,9 +3,9 @@ import duckdb
 from prefect import flow
 from prefect.logging import get_run_logger
 
-from flows.mimic_omop_conversion_plugin.types import MimicOMOPOptionsType
-from flows.mimic_omop_conversion_plugin.load_data import load_mimic_data, load_vocab
-from flows.mimic_omop_conversion_plugin.omop_conversion import staging_mimic_data, ETL_transformation, final_cdm_tables, export_data
+from .types import MimicOMOPOptionsType
+from .load_data import load_mimic_data, load_vocab
+from .omop_conversion import staging_mimic_data, ETL_transformation, final_cdm_tables, export_data
 from shared_utils.dao.DBDao import DBDao
 
 @flow(log_prints=True, persist_result=True)

@@ -3,8 +3,8 @@ import os, glob
 from prefect import task
 from prefect.logging import get_run_logger
 
-from flows.mimic_omop_conversion_plugin.const import *
-from flows.mimic_omop_conversion_plugin.utils import *
+from .const import *
+from .utils import *
 
 
 def initialize_id_sequence(conn):
