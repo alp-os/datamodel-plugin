@@ -234,6 +234,6 @@ COPY --chown=docker:docker --chmod=711 ./requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
-COPY --chown=docker:docker --chmod=711 ./flows flows
+COPY --chown=docker:docker --chmod=711 ./flows/base flows
 
 USER docker

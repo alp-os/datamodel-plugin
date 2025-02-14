@@ -19,7 +19,7 @@ def setup_plugin():
     if (r_libs_user_directory):
         ShellOperation(
             commands=[
-                f"Rscript -e \"remotes::install_github('OHDSI/CohortGenerator@0.8.1',quiet=FALSE,upgrade='never',force=TRUE, dependencies=FALSE, lib='{r_libs_user_directory}')\""
+                f"Rscript -e \"remotes::install_github('OHDSI/CohortGenerator@v0.8.1',quiet=FALSE,upgrade='never',force=TRUE, dependencies=FALSE, lib='{r_libs_user_directory}')\""
             ]).run()
     else:
         raise ValueError("Environment variable: 'R_LIBS_USER' is empty.")
@@ -28,6 +28,7 @@ def setup_plugin():
 
 @flow(log_prints=True, persist_result=True)
 def cohort_generator_plugin(options: CohortGeneratorOptionsType):
+    setup_plugin()
     logger = get_run_logger()
     logger.info('Running Cohort Generator')
         
@@ -38,6 +39,7 @@ def cohort_generator_plugin(options: CohortGeneratorOptionsType):
     dataset_id = options.datasetId
     description = options.description
     use_cache_db = options.use_cache_db
+    cohort_definition_id = options.cohortDefinitionId
 
     dbdao = DBDao(use_cache_db=use_cache_db,
                   database_code=database_code, 
@@ -47,12 +49,16 @@ def cohort_generator_plugin(options: CohortGeneratorOptionsType):
     
     cohort_json_expression = json.dumps(cohort_json.expression)
     cohort_name = cohort_json.name
-    
-    cohort_definition_id = create_cohort_definition(analytics_svc_api,
-                                                    dataset_id,
-                                                    description,
-                                                    cohort_json_expression,
-                                                    cohort_name)
+
+    # Only create cohort definition if cohort_definition_id is not provided in flow options
+    if cohort_definition_id == None:
+        cohort_definition_id = create_cohort_definition(
+            analytics_svc_api,
+            dataset_id,
+            description,
+            cohort_json_expression,
+            cohort_name,
+        )
 
     create_cohort(dbdao,
                   UserType.ADMIN_USER,
