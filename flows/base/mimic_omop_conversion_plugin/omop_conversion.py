@@ -39,6 +39,7 @@ def final_cdm_tables(conn):
 
 @task(log_prints=True) 
 def export_data(duckdb_file_name, to_dbdao, chunk_size):
+    logger = get_run_logger()
     db_credentials = to_dbdao.tenant_configs
     dialect = to_dbdao.dialect
     schema_name = to_dbdao.schema_name
@@ -73,12 +74,17 @@ def export_data(duckdb_file_name, to_dbdao, chunk_size):
                     hana_conn.commit()
             tables = to_dbdao.get_table_names()
             for table in tables:
-                for chunk, percent in read_table_chunks(duckdb_file_name, table, chunk_size=chunk_size):                   
+                tmp = 0
+                for chunk, percent in read_table_chunks(duckdb_file_name, table, chunk_size=chunk_size):   
+                    if percent != tmp: 
+                        flag = True
+                        tmp = percent  
+                    else:
+                        flag = False           
                     if not chunk.empty:
-                        
                         insert_to_hana_direct(to_dbdao, chunk, schema_name, table)
-                        logger = get_run_logger()
-                        logger.info(f"{percent*100}% of table '{table}' are inserted")
+                    if flag: 
+                        logger.info(f"{percent}% of table '{table}' are inserted")
 
 
 def read_table_chunks(duckdb_file_name, table, chunk_size):
@@ -89,7 +95,8 @@ def read_table_chunks(duckdb_file_name, table, chunk_size):
                 SELECT * FROM cdm.{table}
                 LIMIT {chunk_size} OFFSET {offset}
             """).df()
-            yield chunk, offset/count
+            percent = (offset/count * 100)//10 * 10
+            yield chunk, percent
 
 
 def insert_to_hana_direct(to_dbdao, chunk, schema_name, table):

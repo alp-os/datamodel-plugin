@@ -37,13 +37,13 @@ def mimic_omop_conversion_plugin(options:MimicOMOPOptionsType):
             conn.execute("DROP SCHEMA mimiciv_icu CASCADE")
             conn.execute("DROP SCHEMA mimic_staging CASCADE")
     
-    with duckdb.connect(duckdb_file_name) as conn:
-        logger.info("*** Doing ETL transformations ***")
-        ETL_transformation(conn)
-        logger.info("*** Creating final CDM tables and copy data into them ***")
-        final_cdm_tables(conn)
-        logger.info("*** Exporting CDM tables to Database ***") 
-
+    # with duckdb.connect(duckdb_file_name) as conn:
+        # logger.info("*** Doing ETL transformations ***")
+        # ETL_transformation(conn)
+        # logger.info("*** Creating final CDM tables and copy data into them ***")
+        # final_cdm_tables(conn)
+        
+    logger.info("*** Exporting CDM tables to Database ***") 
     export_data(duckdb_file_name, to_dbdao, chunk_size)
     conn.execute("DROP SCHEMA mimic_etl CASCADE")
     conn.execute("DROP SCHEMA cdm CASCADE")

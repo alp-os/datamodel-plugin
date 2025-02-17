@@ -97,46 +97,46 @@ RUN update-alternatives --install /usr/bin/java java ${JAVA_HOME_11}/bin/java 10
 # Verify the installation
 RUN java -version && R CMD javareconf
 
-# Install Dependencies
-RUN Rscript -e 'options(install.packages.compile.from.source = "never")'
-RUN Rscript -e 'install.packages(c("remotes", "devtools", "rJava", "usethis"))'
+# # Install Dependencies
+# RUN Rscript -e 'options(install.packages.compile.from.source = "never")'
+# RUN Rscript -e 'install.packages(c("remotes", "devtools", "rJava", "usethis"))'
 
-# Install OHDSI Packages - sequence per dependencies
+# # Install OHDSI Packages - sequence per dependencies
 
-# HADES Dependencies
-# https://github.com/r-lib/remotes https://search.r-project.org/CRAN/refmans/remotes/html/install_git.html
-RUN Rscript -e 'remotes::install_github("OHDSI/Andromeda@v0.6.4")' # https://github.com/OHDSI/Andromeda
-RUN Rscript -e 'remotes::install_github("OHDSI/BrokenAdaptiveRidge@v1.0.0")' # https://github.com/OHDSI/BrokenAdaptiveRidge
-RUN Rscript -e 'remotes::install_github("OHDSI/Cyclops@v3.4.0")' # https://github.com/OHDSI/Cyclops
-RUN Rscript -e 'remotes::install_github("rstudio/reticulate@v1.35.0")' # https://github.com/rstudio/reticulate
-# RUN Rscript -e 'remotes::install_github("OHDSI/Achilles@v1.7.2")' # https://github.com/OHDSI/Achilles same version installed by HADES
-# RUN Rscript -e 'remotes::install_github("OHDSI/DataQualityDashboard@v2.6.0", upgrade = "never")' # https://github.com/OHDSI/DataQualityDashboard same version installed by HADES
+# # HADES Dependencies
+# # https://github.com/r-lib/remotes https://search.r-project.org/CRAN/refmans/remotes/html/install_git.html
+# RUN Rscript -e 'remotes::install_github("OHDSI/Andromeda@v0.6.4")' # https://github.com/OHDSI/Andromeda
+# RUN Rscript -e 'remotes::install_github("OHDSI/BrokenAdaptiveRidge@v1.0.0")' # https://github.com/OHDSI/BrokenAdaptiveRidge
+# RUN Rscript -e 'remotes::install_github("OHDSI/Cyclops@v3.4.0")' # https://github.com/OHDSI/Cyclops
+# RUN Rscript -e 'remotes::install_github("rstudio/reticulate@v1.35.0")' # https://github.com/rstudio/reticulate
+# # RUN Rscript -e 'remotes::install_github("OHDSI/Achilles@v1.7.2")' # https://github.com/OHDSI/Achilles same version installed by HADES
+# # RUN Rscript -e 'remotes::install_github("OHDSI/DataQualityDashboard@v2.6.0", upgrade = "never")' # https://github.com/OHDSI/DataQualityDashboard same version installed by HADES
 
-# # print packages and versions - before HADES
+# # # print packages and versions - before HADES
+# # RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
+
+# # OHDSI HADES
+# # private d2e repo auth - ssh key
+# # public HADES repo auth - .Renviron:GITHUB_PAT - https://ohdsi.github.io/Hades/rSetup.html#GitHub_Personal_Access_Token
+# RUN Rscript -e 'remotes::install_github("OHDSI/Hades@v1.13.0")' # https://github.com/OHDSI/Hades https://ohdsi.github.io/Hades/installingHades.html
+# RUN Rscript -e 'remotes::install_github("OHDSI/CohortMethod@v5.2.0")'
+# RUN Rscript -e 'remotes::install_github("OHDSI/CohortIncidence@v3.3.0")'
+
+# # OHDSI packages and versions - after HADES
 # RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
 
-# OHDSI HADES
-# private d2e repo auth - ssh key
-# public HADES repo auth - .Renviron:GITHUB_PAT - https://ohdsi.github.io/Hades/rSetup.html#GitHub_Personal_Access_Token
-RUN Rscript -e 'remotes::install_github("OHDSI/Hades@v1.13.0")' # https://github.com/OHDSI/Hades https://ohdsi.github.io/Hades/installingHades.html
-RUN Rscript -e 'remotes::install_github("OHDSI/CohortMethod@v5.2.0")'
-RUN Rscript -e 'remotes::install_github("OHDSI/CohortIncidence@v3.3.0")'
+# # OHDSI packages and versions - after D2E
+# RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
 
-# OHDSI packages and versions - after HADES
-RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
+# RUN Rscript -e 'remotes::install_github("OHDSI/Strategus@v0.2.1", upgrade = "never")' # Requires latest DatabaseConnector https://github.com/OHDSI/Strategus
+# RUN Rscript -e 'devtools::install_github("OHDSI/CommonDataModel@v5.4.1", upgrade = "never", verbose = "true")' # https://github.com/OHDSI/CommonDataModel
 
-# OHDSI packages and versions - after D2E
-RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
+# # D2E packages
+# RUN Rscript -e 'remotes::install_git("https://github.com/data2evidence/d2e-SqlRender.git", ref="alp-dqd", force = TRUE)' # overwrite existing from OHDSI
+# RUN Rscript -e 'remotes::install_git("https://github.com/data2evidence/d2e-DatabaseConnector.git", ref="alp-dqd", force = TRUE)' # overwrite existing from OHDSI
 
-RUN Rscript -e 'remotes::install_github("OHDSI/Strategus@v0.2.1", upgrade = "never")' # Requires latest DatabaseConnector https://github.com/OHDSI/Strategus
-RUN Rscript -e 'devtools::install_github("OHDSI/CommonDataModel@v5.4.1", upgrade = "never", verbose = "true")' # https://github.com/OHDSI/CommonDataModel
-
-# D2E packages
-RUN Rscript -e 'remotes::install_git("https://github.com/data2evidence/d2e-SqlRender.git", ref="alp-dqd", force = TRUE)' # overwrite existing from OHDSI
-RUN Rscript -e 'remotes::install_git("https://github.com/data2evidence/d2e-DatabaseConnector.git", ref="alp-dqd", force = TRUE)' # overwrite existing from OHDSI
-
-# OHDSI packages and versions - final
-RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
+# # OHDSI packages and versions - final
+# RUN Rscript -e 'as.data.frame(installed.packages())[,c("Package", "Version")]' | awk '{print $1,$NF}' | grep -E "$(grep -l -i ohdsi /usr/local/lib/R/site-library/*/DESCRIPTION | awk -F/ '{print $(NF-1)}' | paste -sd '|')"
 
 # RUN rm -rf .Renviron /app/.github/.ssh
 
@@ -196,8 +196,8 @@ ENV R_LIBS_USER_DIR /home/docker/plugins/R/site-library
 RUN mkdir -p $R_LIBS_USER_DIR
 RUN chown -R docker:docker $R_LIBS_USER_DIR
 
-# Common Data Model
-RUN Rscript -e "remotes::install_github('OHDSI/CommonDataModel@v5.4.1', quiet=FALSE, upgrade='never', force=TRUE, dependencies=FALSE, lib='$R_LIBS_USER_DIR')"
+# # Common Data Model
+# RUN Rscript -e "remotes::install_github('OHDSI/CommonDataModel@v5.4.1', quiet=FALSE, upgrade='never', force=TRUE, dependencies=FALSE, lib='$R_LIBS_USER_DIR')"
 
 # Uncomment for installation of i2b2 source code
 # # Add Apache Ant for i2b2 data model creation
