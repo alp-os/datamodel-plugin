@@ -1,6 +1,7 @@
 from prefect import task
 from prefect.logging import get_run_logger
 from sqlalchemy import text
+import duckdb
 
 import numpy as np
 from .const import *
@@ -37,9 +38,8 @@ def final_cdm_tables(conn):
 
 
 @task(log_prints=True) 
-def export_data(conn, to_dbdao, chunk_size):
+def export_data(duckdb_file_name, to_dbdao, chunk_size):
     db_credentials = to_dbdao.tenant_configs
-    # print('db_credentials', db_credentials)
     dialect = to_dbdao.dialect
     schema_name = to_dbdao.schema_name
     if to_dbdao.check_schema_exists(): 
@@ -52,17 +52,18 @@ def export_data(conn, to_dbdao, chunk_size):
             AS pg (TYPE POSTGRES, SCHEMA {schema_name});
             """
             # Attach Posgres Database
-            conn.execute(attach_qry)
-            # Creat schema and tables in postgres database
-            create_table(conn, PostgresDDL, schema_name=schema_name)
-            tables = conn.execute(f"SELECT table_name FROM duckdb_tables() WHERE (database_name = 'pg')").fetchall()
-            tables = [x[0] for x in tables]
-            for table in tables:
-                conn.execute(f"""
-                INSERT INTO pg.{schema_name}.{table}
-                SELECT * FROM cdm.{table};    
-                """)
-            conn.execute("DETACH pg;")
+            with duckdb.connect(duckdb_file_name) as conn:
+                conn.execute(attach_qry)
+                # Creat schema and tables in postgres database
+                create_table(conn, PostgresDDL, schema_name=schema_name)
+                tables = conn.execute(f"SELECT table_name FROM duckdb_tables() WHERE (database_name = 'pg')").fetchall()
+                tables = [x[0] for x in tables]
+                for table in tables:
+                    conn.execute(f"""
+                    INSERT INTO pg.{schema_name}.{table}
+                    SELECT * FROM cdm.{table};    
+                    """)
+                conn.execute("DETACH pg;")
 
         case SupportedDatabaseDialects.HANA:
             create_sqls = open(HANADDL).read().replace('@schema_name', schema_name).split(';')[:-1]
@@ -70,24 +71,26 @@ def export_data(conn, to_dbdao, chunk_size):
                 with to_dbdao.engine.connect() as hana_conn:
                     hana_conn.execute(text(create_sql))
                     hana_conn.commit()
-
             tables = to_dbdao.get_table_names()
             for table in tables:
-                for chunk in read_table_chunks(conn, table, chunk_size=chunk_size):                   
+                for chunk, percent in read_table_chunks(duckdb_file_name, table, chunk_size=chunk_size):                   
                     if not chunk.empty:
+                        
                         insert_to_hana_direct(to_dbdao, chunk, schema_name, table)
-                    else: 
-                        break
+                        logger = get_run_logger()
+                        logger.info(f"{percent*100}% of table '{table}' are inserted")
 
 
-def read_table_chunks(conn, table, chunk_size):
-    count = conn.execute(f"SELECT COUNT(*) FROM cdm.{table}").fetchone()[0]
-    for offset in range(0, count, chunk_size):
-        chunk = conn.execute(f"""
-            SELECT * FROM cdm.{table}
-            LIMIT {chunk_size} OFFSET {offset}
-        """).df()
-        yield chunk
+def read_table_chunks(duckdb_file_name, table, chunk_size):
+    with duckdb.connect(duckdb_file_name) as conn:
+        count = conn.execute(f"SELECT COUNT(*) FROM cdm.{table}").fetchone()[0]
+        for offset in range(0, count, chunk_size):
+            chunk = conn.execute(f"""
+                SELECT * FROM cdm.{table}
+                LIMIT {chunk_size} OFFSET {offset}
+            """).df()
+            yield chunk, offset/count
+
 
 def insert_to_hana_direct(to_dbdao, chunk, schema_name, table):
     with to_dbdao.engine.connect() as hana_conn:
@@ -102,4 +105,3 @@ def insert_to_hana_direct(to_dbdao, chunk, schema_name, table):
         data = chunk.to_dict('records')
         hana_conn.execute(text(insert_stmt), data)
         hana_conn.commit()
-

@@ -43,8 +43,9 @@ def mimic_omop_conversion_plugin(options:MimicOMOPOptionsType):
         logger.info("*** Creating final CDM tables and copy data into them ***")
         final_cdm_tables(conn)
         logger.info("*** Exporting CDM tables to Database ***") 
-        export_data(conn, to_dbdao, chunk_size)
-        conn.execute("DROP SCHEMA mimic_etl CASCADE")
-        conn.execute("DROP SCHEMA cdm CASCADE")
-        logger.info("<--------- Workflow complete --------->")
+
+    export_data(duckdb_file_name, to_dbdao, chunk_size)
+    conn.execute("DROP SCHEMA mimic_etl CASCADE")
+    conn.execute("DROP SCHEMA cdm CASCADE")
+    logger.info("<--------- Workflow complete --------->")
     
