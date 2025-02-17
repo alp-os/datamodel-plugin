@@ -350,7 +350,7 @@ def transform_for_image_feature(mapped_concepts_df: pd.DataFrame, image_occurren
 
 
     new_image_features['value_as_number'] = new_image_features.apply(
-        lambda row: row['value'] if (row['VR'] != 'CS') | (row['VR'] != 'LO') else None, axis=1) # measurement table value as number col
+        lambda row: row['value'] if row['VR'] not in ['CS', 'LO'] else None, axis=1) # measurement table value as number col
     new_image_features['measurement_source_value'] = new_image_features['value'].astype(str).str[:50] # measurement table source value col is varchar(50)
     new_image_features = new_image_features.where(pd.notnull(new_image_features), None)
 
