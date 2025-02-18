@@ -7,7 +7,8 @@ class MimicOMOPOptionsType(BaseModel):
     load_mimic_vocab: bool = True
     database_code: str
     schema_name: str
-    chunk_size: int = 10000
+    overwrite_schema: bool = False
+    chunk_size: int = 5000
 
     @property
     def use_cache_db(self) -> str:

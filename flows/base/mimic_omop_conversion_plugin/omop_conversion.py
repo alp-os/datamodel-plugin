@@ -1,9 +1,10 @@
 from prefect import task
 from prefect.logging import get_run_logger
+
 from sqlalchemy import text
 import duckdb
-
 import numpy as np
+
 from .const import *
 from .utils import *
 from .load_data import *
@@ -38,13 +39,17 @@ def final_cdm_tables(conn):
 
 
 @task(log_prints=True) 
-def export_data(duckdb_file_name, to_dbdao, chunk_size):
+def export_data(duckdb_file_name, to_dbdao, overwrite_schema, chunk_size):
     logger = get_run_logger()
     db_credentials = to_dbdao.tenant_configs
     dialect = to_dbdao.dialect
     schema_name = to_dbdao.schema_name
-    if to_dbdao.check_schema_exists(): 
-        to_dbdao.drop_schema()
+    if to_dbdao.check_schema_exists():
+        if overwrite_schema:
+            to_dbdao.drop_schema()
+        else:
+            logger.error(f"Schema '{to_dbdao.schema_name}'exist! To overwrite the existing schema, set 'Overwrite Schema' to True")
+            raise ValueError()
     to_dbdao.create_schema()
     match dialect:
         case SupportedDatabaseDialects.POSTGRES:

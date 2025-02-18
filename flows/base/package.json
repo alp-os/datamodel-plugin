@@ -1724,8 +1724,13 @@
                         },
                         "database_code": {"title": "Database Code", "type": "string"},
                         "schema_name": {"title": "Schema Name", "type": "string"},
+                        "overwrite_schema": {
+                          "default": false,
+                          "title": "Overwrite Schema",
+                          "type": "boolean"
+                        },
                         "chunk_size": {
-                          "default": 10000,
+                          "default": 5000,
                           "title": "Chunk Size",
                           "type": "integer"
                         }
