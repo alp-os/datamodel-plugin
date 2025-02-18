@@ -489,38 +489,38 @@ def extract_data_elements(dicom_files) -> pd.DataFrame:
     logger.info(f"Extracting metadata from {len(dicom_files)} files..")
 
     for filepath in dicom_files:
-        dicom_f = dcmread(filepath)
+        with dcmread(filepath) as dicom_f:
 
-        study_instance_uid = dicom_f.get("StudyInstanceUID") # [0x0020, 0x000D]
-        series_instance_uid = dicom_f.get("SeriesInstanceUID") # [0x0020, 0x000E]
-        sop_instance_uid = dicom_f.get("SOPInstanceUID") # [0x0008,0x0018]
-        instance_number = dicom_f.get("InstanceNumber", None) # [0x0020,0x0013]
+            study_instance_uid = dicom_f.get("StudyInstanceUID") # [0x0020, 0x000D]
+            series_instance_uid = dicom_f.get("SeriesInstanceUID") # [0x0020, 0x000E]
+            sop_instance_uid = dicom_f.get("SOPInstanceUID") # [0x0008,0x0018]
+            instance_number = dicom_f.get("InstanceNumber", None) # [0x0020,0x0013]
 
-        record = {
-            "image_study_uid": study_instance_uid,
-            "image_series_uid": series_instance_uid,
-            "sop_instance_id": sop_instance_uid,
-            "instance_number": instance_number,
-            "filepath": filepath
-        }
+            record = {
+                "image_study_uid": study_instance_uid,
+                "image_series_uid": series_instance_uid,
+                "sop_instance_id": sop_instance_uid,
+                "instance_number": instance_number,
+                "filepath": filepath
+            }
 
-        for data_elem in dicom_f:
-            if convert_tag_to_string(data_elem.tag) == "7FE00010" or data_elem.VR == "UN": # Filter out values that are too large to store in db
-                continue # skip
-            else:
-                try:
-                    extracted_metadata.extend(data_elem_to_dict(data_elem, record, generator_fn))
-                except Exception as e:
-                    error_msg = f"Failed to process {data_elem.name}: {e}"
-                    error_elements.append(
-                        {
-                            "filepath": str(filepath),
-                            "data_element_name": data_elem.name,
-                            "data_element_tag": data_elem.tag,
-                            "data_element_vr": data_elem.VR
-                        }
-                    )
-                    logger.error(error_msg)
+            for data_elem in dicom_f:
+                if convert_tag_to_string(data_elem.tag) == "7FE00010" or data_elem.VR == "UN": # Filter out values that are too large to store in db
+                    continue # skip
+                else:
+                    try:
+                        extracted_metadata.extend(data_elem_to_dict(data_elem, record, generator_fn))
+                    except Exception as e:
+                        error_msg = f"Failed to process {data_elem.name}: {e}"
+                        error_elements.append(
+                            {
+                                "filepath": str(filepath),
+                                "data_element_name": data_elem.name,
+                                "data_element_tag": data_elem.tag,
+                                "data_element_vr": data_elem.VR
+                            }
+                        )
+                        logger.error(error_msg)
 
     logger.info(f"Successfully extracted metadata for {len(extracted_metadata)} data elements")
 
