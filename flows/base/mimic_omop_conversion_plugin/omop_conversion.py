@@ -89,7 +89,8 @@ def export_data(duckdb_file_name, to_dbdao, overwrite_schema, chunk_size):
                     if not chunk.empty:
                         insert_to_hana_direct(to_dbdao, chunk, schema_name, table)
                     if flag: 
-                        logger.info(f"{percent}% of table '{table}' are inserted")
+                        logger.info(f"{int(percent)}% of table '{table}' is inserted")
+                logger.info(f"100% of table '{table}' is inserted")
 
 
 def read_table_chunks(duckdb_file_name, table, chunk_size):
