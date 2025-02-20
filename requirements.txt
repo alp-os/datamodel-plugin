@@ -11,3 +11,4 @@ numpy==2.0.0
 pyarrow==17.0.0
 ibis-framework[duckdb, postgres]==9.5.0
 scikit-learn==1.4.2
+jsonpath-ng==1.7.0

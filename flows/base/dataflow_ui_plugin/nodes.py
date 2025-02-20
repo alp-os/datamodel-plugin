@@ -1,3 +1,4 @@
+import json
 import ibis
 import duckdb
 import logging
@@ -6,12 +7,13 @@ import traceback as tb
 from rpy2 import robjects
 from sqlalchemy import text
 from functools import partial
+from jsonpath_ng import jsonpath, parse
 
 from prefect import task, flow
 
-from flows.dataflow_ui_plugin.hooks import *
-from flows.dataflow_ui_plugin.flowutils import *
-from flows.dataflow_ui_plugin.types import JoinType
+from .hooks import *
+from .flowutils import *
+from .types import JoinType
 
 from shared_utils.types import UserType
 from shared_utils.dao.DBDao import DBDao
@@ -22,7 +24,6 @@ class Node:
         self.id = node["id"]
         self.name = name
         self.type = node["type"]
-        self.use_cache_db = False
 
 
 class Flow(Node):
@@ -39,15 +40,87 @@ class Result:
     def __init__(self, error: bool, data, node: Node, task_run_context):
         self.error = error
         self.node = node
+        self.result = data # preserves the data type of the node result
         self.task_run_id = str(task_run_context.get("id"))
         self.task_run_name = str(task_run_context.get("name"))
         self.flow_run_id = str(task_run_context.get("flow_run_id"))
-        self.data = {
-            "result": data,
-            "error": self.error,
-            "errorMessage": data if self.error else None,
+
+    def create_serializable_result(self):
+        return {
+            "result": serialize_to_json(self.result),
+            "error": self.error, 
+            "errorMessage": self.result if self.error else None,
             "nodeName": self.node.name
         }
+
+
+class Py2TableNode(Node):
+    """
+    Retrieves a table using a specified path in a python object and return as table.
+    
+    Attributes:
+        path: str
+        source: str
+    """
+    def __init__(self, name, _node):
+        super().__init__(name, _node)
+        self.map = _node.get("map")
+        self.ui_map = _node.get("uiMap")
+
+
+    def _get_matches(self, json_to_parse: dict, json_path: str):
+        expression = parse(json_path)
+
+        matched: list = expression.find(json_to_parse)
+
+        # Assume only one match so return index 0
+        return matched[0].value
+
+
+    def __create_dataframe(self, data: dict):
+        if all(not isinstance(v, list) for v in data.values()):
+            # If values are all scalar, need to pass in index
+            index = [0]
+            return pd.DataFrame(data, index=index)
+        else:
+
+            return pd.DataFrame.from_dict(data)
+
+    def _exec(self, _input: dict[str, Result]) -> pd.DataFrame:
+        # Todo: Remove scriptnode prefix coming from UI
+        source_node = self.ui_map.get("source").split(".")[0]
+        path = self.ui_map.get("path")
+        result_obj = _input.get(source_node).result
+
+        if isinstance(result_obj, dict):
+            # If result from input node is already a json
+            data = self._get_matches(result_obj, path)
+        else:
+            # Assume result from input node is an instance of a class
+
+            # Remove first element and use it to access the attribute that stores the data
+            path_list: list = path.split(".")
+            data_attribute = path_list.pop(0)
+            json_to_parse = getattr(result_obj, data_attribute)
+            data = self._get_matches(json_to_parse, ".".join(path_list))
+
+        df = self.__create_dataframe(data)
+        return df
+    
+    def test(self, _input: dict[str, Result], task_run_context):
+        try:
+            table_df = self._exec(_input)
+            return Result(False,  table_df, self, task_run_context)
+        except Exception as e:
+            return Result(True, tb.format_exc(), self, task_run_context)
+    
+
+    def task(self, _input: dict[str, Result], task_run_context):
+        try:
+            table_df = self._exec(_input)
+            return Result(False,  table_df, self, task_run_context)
+        except Exception as e:
+            return Result(True, tb.format_exc(), self, task_run_context)
 
 
 class SqlNode(Node):
@@ -60,18 +133,28 @@ class SqlNode(Node):
     """
     def __init__(self, name, _node):
         super().__init__(name, _node)
-        self.tables = _node["tables"]
         self.sql = _node["sql"]
         
-    def __exec_query(self, _input) -> pd.DataFrame:
+    def __exec_query(self, _input: dict[str, Result]) -> pd.DataFrame:
         con = None
         try:
             # create temporary in-memory table and register input dfs as tables
             con = duckdb.connect()
-            for table_name, input_node in self.tables.items():
-                table_df = _input[input_node].data.get("result")
-                con.register(table_name, table_df)
-            result_df = con.execute(self.sql).fetch_df()
+            # If _input is empty i.e. no linked nodes assume dummy query and execute
+            if _input == {}:
+                result_df = con.execute(self.sql).fetch_df()
+            else:
+                for nodename, input_node_result in _input.items():
+                    data = input_node_result.result
+
+                    # Register incoming dfs as tables using nodename
+                    if isinstance(data, str):
+                        temp_df = pd.DataFrame(json.loads(data))
+                        con.register(nodename, temp_df)
+                    else:
+                        
+                        con.register(nodename, data)
+                result_df = con.execute(self.sql).fetch_df()
             return result_df
         except Exception as e:
             raise e
@@ -183,30 +266,66 @@ class CsvNode(Node):
 class DbWriter(Node):
     def __init__(self, name, _node):
         super().__init__(name, _node)
-        self.tablename = _node["dbtablename"]
+        self.schema_name = _node["dbtablename"].split(".")[0] # Todo: Add on UI side
+        self.table_name = _node["dbtablename"].split(".")[1]
         self.database = _node["database"] 
-        self.dataframe = _node["dataframe"]
-        self.use_cache_db = _node["use_cache_db"]
+        # self.dataframe = _node["dataframe"] # Todo: Add on UI side
+        self.use_cache_db = False
 
     def test(self, _input: dict[str, Result], task_run_context):
         return False
 
-    def task(self, _input: dict[str, Result], task_run_context):
-        input_element = _input
+    # Todo: Connect to db without specifying schema
+    def task(self, _input: dict[str, Result], task_run_context):        
+        dbutils = DBDao(use_cache_db=self.use_cache_db, 
+                        database_code=self.database,
+                        schema_name=self.schema_name)
         
-        admin_user = UserType.ADMIN_USER
-        dbutils = DBUtils(use_cache_db=self.use_cache_db, 
-                          database_code=self.database)
-        dbconn = dbutils.create_database_engine(user_type=admin_user)
+        dbconn = dbutils.engine
+
         try:
-            for path in self.dataframe:
-                input_element = input_element[path].data
-            result = input_element.to_sql(
-                self.tablename, dbconn, if_exists='replace')
-            return Result(False,  result, self, task_run_context)
+            for key, value in _input.items(): 
+                result_obj_df = value.result
+                result_obj_df.to_sql(
+                    self.table_name, con=dbconn, index=False, if_exists="append", schema=self.schema_name
+                )
+            return Result(False,  result_obj_df, self, task_run_context)
+            
+            # Todo: Update with dataframe once it's incorporated in backend
+            # for path in self.dataframe:
+            #     input_element = input_element[path].data
+            # result = input_element.to_sql(
+            #     self.tablename, dbconn, if_exists='replace')
+            # return Result(False,  result, self, task_run_context)
         except Exception as e:
             return Result(True, tb.format_exc(), self, task_run_context)
 
+class DBReader(Node):
+    def __init__(self, name, _node):
+        super().__init__(name, _node)
+        self.sqlquery = _node["sqlquery"]
+        self.schemaname = "cdmdefault" # Use as the default schema for all dialects
+        self.database = _node["database"]
+        self.testdata = _node["testdata"]
+
+    def test(self, task_run_context):
+        return Result(False,  pd.read_json(json.dumps(self.testdata), orient="split"), self, task_run_context)
+
+    # Todo: Connect to db without specifying schema
+    def task(self, task_run_context) -> Result:
+        dbutils = DBDao(use_cache_db=False, 
+                        database_code=self.database,
+                        schema_name=self.schemaname)
+        
+        dbconn = dbutils.engine
+        # Set search path to schema
+
+        try:
+            df = pd.read_sql_query(
+                self.sqlquery, dbconn)
+            return Result(False,  df, self, task_run_context)
+        except Exception as e:
+            return Result(True, tb.format_exc(), self, task_run_context)
 
 
 class SqlQueryNode(Node):
@@ -230,12 +349,12 @@ class SqlQueryNode(Node):
         else:
             self.testsqlquery = _node["sqlquery"]
         self.params = {}
-        self._is_select = _node["is_select"]
+        self._is_select = _node.get("is_select", False)
         if "params" in _node:
             self.params = _node["params"]
         self.database = _node["database"]
-        self.schema = _node["schema"]
-        self.use_cache_db = _node["use_cache_db"]
+        self.schema = "cdmdefault" # Use as the default schema for all dialects
+        self.use_cache_db = False
 
 
     def __compile_with_params(self, sqlquery: str, bind_params: dict) -> str:
@@ -248,19 +367,19 @@ class SqlQueryNode(Node):
     def _exec(self, _input: dict[str, Result], sqlquery: str) -> pd.DataFrame | None:
         con = None
         try:
+            # Todo: Connect to db without specifying schema
             tenant_configs = DBDao(use_cache_db=self.use_cache_db, 
                                    database_code=self.database, 
                                    schema_name=self.schema).tenant_configs
             con = ibis.postgres.connect(database=self.database,
                                         host=tenant_configs.host,
-                                        user=tenant_configs.readUser,
-                                        password=tenant_configs.readPassword.get_secret_value())
-            retrieved_params = {param: _input[node].data.get("result") 
+                                        user=tenant_configs.adminUser,
+                                        password=tenant_configs.adminPassword.get_secret_value())
+            retrieved_params = {param: _input[node].result 
                                 for param, node in self.params.items()}
             
             compiled_query = self.__compile_with_params(sqlquery, retrieved_params)
-            
-            result = con.sql(compiled_query)
+            result = con.raw_sql(compiled_query)
             if self._is_select:
                 return result.to_pandas()
             return
@@ -282,7 +401,7 @@ class SqlQueryNode(Node):
             return Result(True, tb.format_exc(), self, task_run_context)
 
 
-# To do: link up with JSON from UI
+# Todo: link up with JSON from UI
 class DataMappingNode(Node):
     """
     Map fields from multiple source dataframes to target tables.
@@ -308,7 +427,7 @@ class DataMappingNode(Node):
                                  if mapping["output_table"]==target_table]
             for source_table in source_table_list:
                 source_node = self.source_node_dfs.get(source_table)
-                source_table_df = _input[source_node].data.get("result")
+                source_table_df = _input[source_node].result
                 ibis_mem_tables[source_table] = con.register(table_name=source_table, source=source_table_df)
             
             # create a base select statement by joining all input tables
@@ -399,7 +518,7 @@ class DataMappingNode(Node):
         try:
             target_table_dfs = {}
             target_table_list = set(mapping["output_table"] for mapping in self.data_mapping)
-            # Todo: Confirm if
+
             for target_table in target_table_list:
                 target_table_dfs[target_table] = self.__create_target_table(_input, target_table)
         except Exception as e:
@@ -454,8 +573,12 @@ def generate_node_task(nodename, node, nodetype):
             nodeobj = SqlNode(nodename, node)
         case "python_node":
             nodeobj = PythonNode(nodename, node)
+        case "py2table_node":
+            nodeobj = Py2TableNode(nodename, node)
         case "r_node":
             nodeobj = RNode(nodename, node)
+        case "db_reader_node":
+            nodeobj = DBReader(nodename, node)
         case "db_writer_node":
             nodeobj = DbWriter(nodename, node)
         case "sql_query_node":
@@ -469,4 +592,5 @@ def generate_node_task(nodename, node, nodetype):
 
 
 def serialize_result_to_json(result: Result):
-    return serialize_to_json(result.data)
+    result_to_store = result.create_serializable_result()
+    return result_to_store

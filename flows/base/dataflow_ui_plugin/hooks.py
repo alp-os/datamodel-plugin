@@ -51,7 +51,11 @@ def node_task_execution_hook(task, task_run, state, nodename, nodetype, nodeobj,
                 pass
             case "python_node":
                 pass
+            case "py2table_node":
+                pass
             case "r_node":
+                pass
+            case "db_reader_node":
                 pass
             case "db_writer_node":
                 pass
