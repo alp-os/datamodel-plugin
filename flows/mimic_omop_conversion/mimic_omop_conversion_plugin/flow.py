@@ -1,4 +1,5 @@
 import duckdb
+import os
 
 from prefect import flow
 from prefect.logging import get_run_logger
@@ -24,8 +25,8 @@ def mimic_omop_conversion_plugin(options:MimicOMOPOptionsType):
     to_dbdao = DBDao(use_cache_db=use_cache_db,
                 database_code=database_code,
                 schema_name=schema_name)
-
     
+    # Load data to duckdb
     if load_mimic_vocab:
         # every connection in duckdb will release the memory
         with duckdb.connect(duckdb_file_name) as conn:
@@ -38,15 +39,21 @@ def mimic_omop_conversion_plugin(options:MimicOMOPOptionsType):
             conn.execute("DROP SCHEMA mimiciv_icu CASCADE")
             conn.execute("DROP SCHEMA mimic_staging CASCADE")
     
+    # ETL process
     with duckdb.connect(duckdb_file_name) as conn:
         logger.info("*** Doing ETL transformations ***")
         ETL_transformation(conn)
         logger.info("*** Creating final CDM tables and copy data into them ***")
         final_cdm_tables(conn)
-        
+
+    # Export OMOP tables to Database
     logger.info("*** Exporting CDM tables to Database ***") 
     export_data(duckdb_file_name=duckdb_file_name, to_dbdao=to_dbdao, overwrite_schema=overwrite_schema, chunk_size=chunk_size)
-    conn.execute("DROP SCHEMA mimic_etl CASCADE")
-    conn.execute("DROP SCHEMA cdm CASCADE")
+
+    # Cleanup process
+    with duckdb.connect(duckdb_file_name) as conn:
+        conn.execute("DROP SCHEMA mimic_etl CASCADE")
+        conn.execute("DROP SCHEMA cdm CASCADE")
+    os.remove(duckdb_file_name)
+    logger.info(f"File '{duckdb_file_name}' deleted successfully.")
     logger.info("<--------- Workflow complete --------->")
-    

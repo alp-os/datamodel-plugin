@@ -226,9 +226,6 @@ RUN chown docker:alp ./duckdb_data
 RUN mkdir -p ./cdw-config/duckdb_data
 RUN chown -R docker:alp ./cdw-config
 
-# Create folder for mimic database files
-RUN mkdir ./mimic_omop
-RUN chown docker:docker ./mimic_omop
 
 COPY --chown=docker:docker --chmod=711 ./requirements.txt .
 RUN pip install -r requirements.txt

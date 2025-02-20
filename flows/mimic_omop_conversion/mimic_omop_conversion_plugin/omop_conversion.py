@@ -118,3 +118,4 @@ def insert_to_hana_direct(to_dbdao, chunk, schema_name, table):
         data = chunk.to_dict('records')
         hana_conn.execute(text(insert_stmt), data)
         hana_conn.commit()
+    to_dbdao.engine.dispose()
