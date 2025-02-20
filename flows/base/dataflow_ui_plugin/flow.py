@@ -10,9 +10,9 @@ from prefect.serializers import JSONSerializer
 from prefect.filesystems import RemoteFileSystem as RFS
 from prefect.context import TaskRunContext, FlowRunContext
 
-from flows.dataflow_ui_plugin.hooks import *
-from flows.dataflow_ui_plugin.flowutils import *
-from flows.dataflow_ui_plugin.nodes import generate_nodes_flow
+from .hooks import *
+from .flowutils import *
+from .nodes import generate_nodes_flow
 
 
 @flow(log_prints=True)
@@ -139,6 +139,8 @@ def execute_nodes_flow(graph, sorted_nodes, test):
                 "csv_node",
                 "sql_node",
                 "python_node",
+                "py2table_node",
+                "db_reader_node",
                 "db_writer_node",
                 "sql_query_node",
                 "r_node",
@@ -189,7 +191,7 @@ def execute_node_task(nodename, node_type, node, input, test):
         result = _node.test(task_run_context)
     else:
         match node_type:
-            case ('csv_node'):
+            case 'csv_node' | 'db_reader_node':
                 result = _node.task(task_run_context)
             case _:
                 result = _node.task(input, task_run_context)

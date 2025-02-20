@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pandas as pd
 from rpy2 import robjects
@@ -86,7 +87,7 @@ def convert_R_to_py(r_obj, name=""):
                     result[k] = convert_R_to_py(v, name=k)
             return result
 
-def serialize_to_json(data):
+def serialize_to_json(data: any) -> dict:
     if isinstance(data, pd.DataFrame):
         json_df = data.to_json(orient="records", default_handler=str)
         return json_df
@@ -98,7 +99,13 @@ def serialize_to_json(data):
     elif hasattr(data, 'rid') and hasattr(data, 'rclass') and hasattr(data, 'r_repr'):
         return data.r_repr()
     else:
-        return data
+        try:
+            # For primitive types, tuple, list
+            json_value = json.dumps(data)
+            return json_value
+        except:
+            # Assume custom object
+            return serialize_to_json(data.__dict__)
 
 def get_scheduler_address(graph):
     scheduler_host = graph["executor_options"]["executor_address"]["host"]
