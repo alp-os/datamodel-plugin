@@ -10,9 +10,9 @@ from prefect.serializers import JSONSerializer
 from prefect.filesystems import RemoteFileSystem as RFS
 from prefect.context import TaskRunContext, FlowRunContext
 
-from flows.base.dataflow_ui_plugin.hooks import *
-from flows.base.dataflow_ui_plugin.flowutils import *
-from flows.base.dataflow_ui_plugin.nodes import generate_nodes_flow
+from .hooks import *
+from .flowutils import *
+from .nodes import generate_nodes_flow
 
 
 @flow(log_prints=True)

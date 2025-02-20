@@ -11,9 +11,9 @@ from jsonpath_ng import jsonpath, parse
 
 from prefect import task, flow
 
-from flows.base.dataflow_ui_plugin.hooks import *
-from flows.base.dataflow_ui_plugin.flowutils import *
-from flows.base.dataflow_ui_plugin.types import JoinType
+from .hooks import *
+from .flowutils import *
+from .types import JoinType
 
 from shared_utils.types import UserType
 from shared_utils.dao.DBDao import DBDao
