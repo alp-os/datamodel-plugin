@@ -20,7 +20,6 @@
     "flowActionType": "load_vocab",
     "vocabSchemaName": "cdmvocab",
     "dicomFilesAbsPath": "",
-    "missingPersonIdOptions": "",
     "personToPatientMapping": {
       "tableName": "",
       "schemaName": "",
@@ -92,7 +91,4 @@ For each DICOM file in supplied folder parameter `dicom_files_abs_path`
 
 ## DICOM Vocabulary Source / Folder Structure
 - CSV files for DICOM vocabularies, concepts, and data elements sourced from https://github.com/paulnagy/DICOM2OMOP are stored in `external` folder
-- Additional scripts used to modify CSV in `scripts` folder
-
-
 

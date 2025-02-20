@@ -8,11 +8,11 @@ CREATE TABLE image_occurrence(
   procedure_occurrence_id integer NOT NULL,
   visit_occurrence_id integer,
   anatomic_site_concept_id integer,
-  wadors_uri text,
-  local_path text,
+  wadors_uri varchar(10000),
+  local_path varchar(10000),
   image_occurrence_date date NOT NULL,
-  image_study_uid varchar(250) NOT NULL,
-  image_series_uid varchar(250) NOT NULL,
+  image_study_uid varchar(10000) NOT NULL,
+  image_series_uid varchar(10000) NOT NULL,
   modality_concept_id integer NOT NULL
 );
 
@@ -28,10 +28,10 @@ CREATE TABLE image_feature(
   image_finding_concept_id integer,
   image_finding_id integer,
   anatomic_site_concept_id integer,
-  alg_system text,
+  alg_system varchar(10000),
   alg_datetime timestamp
 );
 
 
 --rollback DROP TABLE image_occurrence;
---rollback DROP TABLE image_feature;
+--rollback DROP TABLE image_feature

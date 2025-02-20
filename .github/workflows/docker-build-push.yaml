@@ -66,6 +66,9 @@ jobs:
           - AZ_REG_REPOSITORY: d2e-flow/white_rabbit
             DOCKER_BUILD_CONTEXT_PATH: .
             DOCKER_BUILD_FILE_PATH: flows/white_rabbit/Dockerfile
+          - AZ_REG_REPOSITORY: d2e-flow/dicom-etl
+            DOCKER_BUILD_CONTEXT_PATH: .
+            DOCKER_BUILD_FILE_PATH: flows/dicom_etl/Dockerfile
 
     steps:
       - name: Free Disk Space (Ubuntu)
