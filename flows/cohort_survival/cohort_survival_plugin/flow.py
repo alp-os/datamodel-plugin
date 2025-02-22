@@ -51,6 +51,7 @@ def generate_cohort_survival_data(
     with robjects.conversion.localconverter(robjects.default_converter):
         result = robjects.r(
             f"""
+            .libPaths(c(.libPaths(), "/usr/lib/R/site-library"))
             library(CDMConnector)
             library(CohortSurvival)
             library(dplyr)

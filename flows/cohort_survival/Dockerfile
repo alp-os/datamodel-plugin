@@ -42,6 +42,10 @@ RUN apt-get update && \
     sqlite3 \
     vim-tiny \
     wget \
+    r-cran-snakecase \
+    r-cran-broom \
+    r-cran-dbplyr \
+    r-cran-rjson \
     && apt-get clean
 
 # Python Library Setup
@@ -62,10 +66,10 @@ RUN Rscript -e 'install.packages(c("remotes"))'
 
 ### START COHORT SURVIVAL ###
 
-RUN Rscript -e "remotes::install_version('snakecase', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org')"
-RUN Rscript -e "remotes::install_version('broom', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org')"
-RUN Rscript -e "remotes::install_version('dbplyr', version='2.4.0', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org')" 
-RUN Rscript -e "remotes::install_version('rjson', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org')" 
+#RUN Rscript -e "remotes::install_version('snakecase', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org')"
+#RUN Rscript -e "remotes::install_version('broom', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org')"
+#RUN Rscript -e "remotes::install_version('dbplyr', version='2.4.0', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org')" 
+#RUN Rscript -e "remotes::install_version('rjson', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org')" 
 RUN Rscript -e "remotes::install_version('CDMConnector', version='1.4.0', quiet=TRUE, upgrade='never', force=FALSE, dependencies=NA, repos='https://cloud.r-project.org')" 
 RUN Rscript -e "remotes::install_version('PatientProfiles', version='1.0.0', quiet=TRUE, upgrade='never', force=FALSE, dependencies=TRUE, repos='https://cloud.r-project.org')" 
 RUN Rscript -e "remotes::install_version('CohortSurvival', version='0.5.1', quiet=TRUE, upgrade='never', force=FALSE, dependencies=FALSE, repos='https://cloud.r-project.org')" 
