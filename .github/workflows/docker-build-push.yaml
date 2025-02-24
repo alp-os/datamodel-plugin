@@ -45,7 +45,7 @@ jobs:
       DOCKER_BUILD_PUSH_BOOL_OVERRIDE: ${{ vars.DOCKER_BUILD_PUSH_BOOL_OVERRIDE || 'false' }}
       GIT_BRANCH_NAME: ${{ github.event.inputs.GIT_BRANCH_NAME || github.head_ref || github.ref_name }} # workflow_dispatch || pull_request || push
       GIT_REPO_FULL_NAME: ${{ github.event.inputs.GIT_REPO_FULL_NAME || github.event.pull_request.head.repo.full_name || github.event.repository.full_name }} # workflow_dispatch || pull_request || push
-      DOCKER_BUILD_ARG1: GITHUB_PAT=${{ secrets.GH_TOKEN }}
+      DOCKER_BUILD_ARG1: GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -131,6 +131,7 @@ jobs:
           tags: ghcr.io/data2evidence/${{ env.AZ_REG_REPOSITORY }}:${{ env.DOCKER_IMG_TAG_NAME }}
           build-args: |
             GIT_COMMIT_ARG=${{ github.sha }}
+            BUILD_TYPE=OSS
             ${{ env.DOCKER_BUILD_ARG1 }}
 
       - name: delete-untagged-images
