@@ -6,8 +6,8 @@ from prefect.input import RunInput
 
 
 class AuthMode(str, Enum):
-    JWT = "jwt"
-    PASSWORD = "password"
+    JWT = "JWT"
+    PASSWORD = "Password"
 
 
 class DBCredentialsType(BaseModel):
@@ -19,6 +19,7 @@ class DBCredentialsType(BaseModel):
     password: Optional[SecretStr] = None
     dialect: str
     databaseName: str
+    databaseCode: str
     host: str
     port: int
     encrypt: Optional[bool] = False
@@ -27,16 +28,7 @@ class DBCredentialsType(BaseModel):
     hostnameInCertificate: Optional[str] = ""
     enableAuditPolicies: bool = False
     readRole: Optional[str] = ""
-
-    # Todo: align with DATABASE_CREDENTIALS
-    # authMode: Literal[AuthMode.PASSWORD, AuthMode.JWT]
-    @property # Todo: Temporary until authMode is implemented in DATABASE_CREDENTIALS
-    def authMode(self) -> AuthMode:
-        if self.dialect == SupportedDatabaseDialects.HANA and \
-            all(pw is None for pw in [self.password, self.adminPassword, self.readPassword]):
-                return AuthMode.JWT
-        else:
-            return AuthMode.PASSWORD
+    authMode: Literal[AuthMode.PASSWORD, AuthMode.JWT]
 
 
 class CacheDBCredentialsType(DBCredentialsType):
