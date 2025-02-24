@@ -58,7 +58,7 @@ ENV PATH="/usr/src/app/bin:$PATH"
 
 COPY dataflow-gen-base/requirements.txt /app/requirements.txt
 COPY ./flows/cohort_survival/cohort_survival_plugin/requirements.txt /app/requirements_Cohort_Survival.txt
-RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
+RUN if [ $BUILD_TYPE = 'OSS' ]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
 RUN pip3 install -r /app/requirements.txt -r /app/requirements_Cohort_Survival.txt
 
 ### END INSTALL PYTHON DEPENDENCIES ###

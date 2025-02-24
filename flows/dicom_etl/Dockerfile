@@ -18,7 +18,7 @@ COPY --chown=docker:docker ./postgresql-42.3.1.jar ./inst/drivers/
 COPY --chown=docker:docker ./__init__.py .
 
 COPY --chown=docker:docker --chmod=711 ./flows/dicom_etl/requirements.txt .
-RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
+RUN if [ $BUILD_TYPE = 'OSS' ]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
 RUN pip install -r requirements.txt
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils

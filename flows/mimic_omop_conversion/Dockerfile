@@ -52,7 +52,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 20
 RUN python3 -m venv /usr/src/app
 # Enable venv
 ENV PATH="/usr/src/app/bin:$PATH"
-RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' /app/requirements*.txt; fi
+RUN if [ $BUILD_TYPE = 'OSS' ]; then sed -i '/sqlalchemy-hana/d' /app/requirements*.txt; fi
 RUN pip3 install -r /app/requirements.txt
 
 RUN useradd docker -u 1001 \
@@ -83,7 +83,7 @@ RUN mkdir ./mimic_omop
 RUN chown docker:docker ./mimic_omop
 
 COPY --chown=docker:docker --chmod=711 ./requirements.txt .
-RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
+RUN if [ $BUILD_TYPE = 'OSS' ]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
 RUN pip install -r requirements.txt
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
