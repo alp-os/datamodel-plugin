@@ -237,5 +237,6 @@ RUN pip install -r requirements.txt
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
 COPY --chown=docker:docker --chmod=711 ./flows flows
 
+ENV RUN_TYPE=$BUILD_TYPE
 
 USER docker
