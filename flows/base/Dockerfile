@@ -2,6 +2,7 @@ FROM alpine AS builder
 
 # Create .Renviron file with GITHUB_PAT
 ARG GITHUB_PAT
+ARG BUILD_TYPE
 RUN echo "GITHUB_PAT=$GITHUB_PAT" >> .Renviron
 
 FROM rocker/r-ver:4.4 as base-build
@@ -70,6 +71,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 20
 RUN python3 -m venv /usr/src/app
 # Enable venv
 ENV PATH="/usr/src/app/bin:$PATH"
+RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' /app/requirements*.txt; fi
 RUN pip3 install -r /app/requirements.txt
 
 # Set environment variables
@@ -228,6 +230,7 @@ RUN chown -R docker:alp ./cdw-config
 
 
 COPY --chown=docker:docker --chmod=711 ./requirements.txt .
+RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' /app/requirements*.txt; fi
 RUN pip install -r requirements.txt
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils

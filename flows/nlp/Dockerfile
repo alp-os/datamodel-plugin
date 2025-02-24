@@ -1,5 +1,6 @@
 FROM python:3.10-slim
 
+ARG BUILD_TYPE
 ARG USER=docker
 ENV USER=${USER}
 ARG UID=1000
@@ -36,6 +37,7 @@ RUN pip3 install --upgrade pip
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
 COPY --chown=docker:docker --chmod=711 ./requirements_NLP.txt .
+RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
 RUN pip install -r requirements_NLP.txt
 
 RUN mkdir -p ./flows/nlp

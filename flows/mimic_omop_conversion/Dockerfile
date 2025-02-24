@@ -1,5 +1,7 @@
 FROM rocker/r-ver:4.4 as base-build
 
+ARG BUILD_TYPE
+
 COPY dataflow-gen-base /app
 
 # installs
@@ -50,6 +52,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 20
 RUN python3 -m venv /usr/src/app
 # Enable venv
 ENV PATH="/usr/src/app/bin:$PATH"
+RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' /app/requirements*.txt; fi
 RUN pip3 install -r /app/requirements.txt
 
 RUN useradd docker -u 1001 \
@@ -72,7 +75,7 @@ RUN wget https://extensions.duckdb.org/v${duckdb_version}/linux_amd64_gcc4/postg
     && gzip -d postgres_scanner.duckdb_extension.gz \
     && gzip -d fts.duckdb_extension.gz
 
-    
+
 WORKDIR /app
 
 # Create folder for mimic database files
@@ -80,6 +83,7 @@ RUN mkdir ./mimic_omop
 RUN chown docker:docker ./mimic_omop
 
 COPY --chown=docker:docker --chmod=711 ./requirements.txt .
+RUN if [[ $BUILD_TYPE == 'OSS' ]]; then sed -i '/sqlalchemy-hana/d' requirements*.txt; fi
 RUN pip install -r requirements.txt
 
 COPY --chown=docker:docker --chmod=711 ./shared_utils shared_utils
