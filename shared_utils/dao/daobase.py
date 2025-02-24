@@ -359,14 +359,8 @@ class DaoBase(ABC):
         database_credentials_list = Secret.load("database-credentials").get()
         if not database_credentials_list:
             raise ValueError(f"'DATABASE_CREDENTIALS' secret is empty")
-        _db = next(filter(lambda x: x["values"]["code"] == self.database_code and "alp-dataflow-gen" in x["tags"], database_credentials_list), None)
-        if not _db:
-            raise ValueError(f"Database code '{self.database_code}' not found in database credentials")
-        return self.__process_database_credentials(_db)    
-
-    def __process_database_credentials(self, base_database_credentials: dict) -> DBCredentialsType:
-        combined = {**base_database_credentials["values"], **base_database_credentials["values"]["credentials"]}
-        database_credentials = DBCredentialsType(**combined)
+        _db = next(filter(lambda x: x["databaseCode"] == self.database_code, database_credentials_list), None)
+        database_credentials = DBCredentialsType(**_db)
         match database_credentials.dialect:
             case SupportedDatabaseDialects.HANA:
                 database_credentials.readRole = "TENANT_READ_ROLE"
