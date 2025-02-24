@@ -535,3 +535,52 @@ class SqlAlchemyDao(DaoBase):
                 row_count = connection.execute(
                     select_count_stmt).scalar()   
         return row_count
+    
+    def enable_auditing(self):
+        with self.engine.connect() as connection:
+            stmt = sql.text(
+                f"ALTER SYSTEM ALTER CONFIGURATION ('global.ini','SYSTEM') set ('auditing configuration','global_auditing_state' ) = 'true' with reconfigure")
+            print("Executing enable audit statement..")
+            res = connection.execute(stmt)
+            connection.commit()
+            print(f"Altered system configuration successfully")
+
+    def create_system_audit_policy(self):
+        with self.engine.connect() as connection:
+            check_audit_policy = sql.text(
+                f"SELECT * from SYS.AUDIT_POLICIES WHERE AUDIT_POLICY_NAME = 'alp_conf_changes'")
+            print("Executing check system audit policy statement..")
+            check_audit_policy_res = connection.execute(
+                check_audit_policy).fetchall()
+            if check_audit_policy_res == []:
+                create_audit_policy = sql.text(
+                    f'''CREATE AUDIT POLICY "alp_conf_changes" AUDITING SUCCESSFUL SYSTEM CONFIGURATION CHANGE LEVEL INFO''')
+                print("Executing create system audit policy statement..")
+                create_audit_policy_res = connection.execute(
+                    create_audit_policy)
+                print("Executing alter system audit policy statement..")
+                alter_audit_policy = sql.text(
+                    f'''ALTER AUDIT POLICY "alp_conf_changes" ENABLE''')
+                alter_audit_policy.res = connection.execute(alter_audit_policy)
+                connection.commit()
+                print(
+                    "New audit policy for system configuration created & enabled successfully")
+            else:
+                print("Audit policy for system configuration Exists Already")
+
+    def create_schema_audit_policy(self):
+        with self.engine.connect() as connection:
+            create_audit_policy = sql.text(f'''
+                        CREATE AUDIT POLICY ALP_AUDIT_POLICY_{self.schema_name}
+                        AUDITING ALL INSERT, SELECT, UPDATE, DELETE ON
+                        {self.schema_name}.* LEVEL INFO
+                        ''')
+            print("Executing create schema audit policy statement..")
+            create_audit_policy_res = connection.execute(create_audit_policy)
+            alter_audit_policy = sql.text(
+                f'''ALTER AUDIT POLICY ALP_AUDIT_POLICY_{self.schema_name} ENABLE''')
+            print("Executing alter schema audit policy statement..")
+            alter_audit_policy_res = connection.execute(alter_audit_policy)
+            connection.commit()
+            print(
+                f"New audit policy for {self.schema_name} created & enabled successfully")
